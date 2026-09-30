@@ -49,7 +49,7 @@ export class RectClip64 {
         } else {
             currIdx--;
             const prevOp = this.results[currIdx];
-            if (prevOp!.pt === pt) return prevOp!;
+            if (Point64.equals(prevOp!.pt, pt)) return prevOp!;
             result = new OutPt2(pt);
             result.ownerIdx = currIdx;
             result.next = prevOp!.next;
@@ -213,8 +213,8 @@ export class RectClip64 {
     }
 
     private static getSegmentIntersection(p1: IPoint64, p2: IPoint64, p3: IPoint64, p4: IPoint64): { success: boolean, ip: IPoint64 } {
-        let res1 = InternalClipper.crossProduct(p1, p3, p4);
-        let res2 = InternalClipper.crossProduct(p2, p3, p4);
+        const res1 = InternalClipper.crossProduct(p1, p3, p4);
+        const res2 = InternalClipper.crossProduct(p2, p3, p4);
         let ip: IPoint64 = new Point64(0, 0);
 
         const equals = (lhs: IPoint64, rhs: IPoint64): boolean => {
@@ -237,8 +237,8 @@ export class RectClip64 {
 
         if ((res1 > 0) === (res2 > 0)) return { ip: new Point64(0, 0), success: false };
 
-        let res3 = InternalClipper.crossProduct(p3, p1, p2);
-        let res4 = InternalClipper.crossProduct(p4, p1, p2);
+        const res3 = InternalClipper.crossProduct(p3, p1, p2);
+        const res4 = InternalClipper.crossProduct(p4, p1, p2);
 
         if (res3 === 0) {
             ip = p3;
@@ -261,7 +261,7 @@ export class RectClip64 {
     protected static getIntersection(rectPath: Path64, p: IPoint64, p2: IPoint64, loc: Location): { success: boolean, loc: Location, ip: IPoint64 } {
         // gets the pt of intersection between rectPath and segment(p, p2) that's closest to 'p'
         // when result == false, loc will remain unchanged
-        let ip: IPoint64 = new Point64();
+        const ip: IPoint64 = new Point64(0, 0);
         let result: { success: boolean, ip: IPoint64 }
 
         switch (loc) {
@@ -696,7 +696,7 @@ export class RectClip64 {
                 op2IsLarger = op2!.pt.y > op2!.prev!.pt.y;
             }
 
-            if ((op!.next === op!.prev) || (op!.pt === op!.prev!.pt)) {
+            if ((op!.next === op!.prev) || Point64.equals(op!.pt, op!.prev!.pt)) {
                 if (op2IsLarger === cwIsTowardLarger) {
                     cw[i] = op2;
                     ccw[j++] = undefined;
@@ -704,7 +704,7 @@ export class RectClip64 {
                     ccw[j] = op2;
                     cw[i++] = undefined;
                 }
-            } else if ((op2!.next === op2!.prev) || (op2!.pt === op2!.prev!.pt)) {
+            } else if ((op2!.next === op2!.prev) || Point64.equals(op2!.pt, op2!.prev!.pt)) {
                 if (opIsLarger === cwIsTowardLarger) {
                     cw[i] = op;
                     ccw[j++] = undefined;

@@ -6,10 +6,8 @@ import { RectClip64, RectClipLines64 } from "./rectclip";
 
 export class Clipper {
 
-    private static invalidRect64: Rect64
     public static get InvalidRect64(): Rect64 {
-        if (!Clipper.invalidRect64) Clipper.invalidRect64 = new Rect64(false);
-        return this.invalidRect64;
+        return new Rect64(false);
     }
 
     public static Intersect(subject: Paths64, clip: Paths64, fillRule: FillRule): Paths64 {
@@ -226,11 +224,11 @@ export class Clipper {
         let lastPt = path[0];
         result.push(lastPt);
         for (let i = 1; i < cnt; i++)
-            if (lastPt !== path[i]) {
+            if (Point64.notEquals(lastPt, path[i])) {
                 lastPt = path[i];
                 result.push(lastPt);
             }
-        if (isClosedPath && lastPt === result[0])
+        if (isClosedPath && Point64.equals(lastPt, result[0]))
             result.pop();
         return result;
     }

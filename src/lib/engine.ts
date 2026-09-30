@@ -102,14 +102,16 @@ export class OutRec {
     backEdge: Active | undefined;
     pts: OutPt | undefined;
     polypath: PolyPathBase | undefined;
-    bounds!: Rect64;
-    path!: Path64;
+    bounds: Rect64;
+    path: Path64;
     isOpen: boolean;
     splits: number[] | undefined;
     recursiveSplit: OutRec | undefined;
     constructor(idx: number) {
         this.idx = idx
         this.isOpen = false
+        this.bounds = new Rect64(true)
+        this.path = new Path64()
     }
 }
 
@@ -199,7 +201,7 @@ export class ClipperEngine {
                     v0 = new Vertex(pt, VertexFlags.None, undefined);
                     vertexList.push(v0);
                     prev_v = v0;
-                } else if (prev_v!.pt !== pt) {  // i.e., skips duplicates
+                } else if (Point64.notEquals(prev_v!.pt, pt)) {  // i.e., skips duplicates
                     curr_v = new Vertex(pt, VertexFlags.None, prev_v);
                     vertexList.push(curr_v);
                     prev_v!.next = curr_v;
@@ -207,7 +209,7 @@ export class ClipperEngine {
                 }
             }
             if (!prev_v || !prev_v.prev) continue;
-            if (!isOpen && prev_v.pt === v0!.pt) prev_v = prev_v.prev;
+            if (!isOpen && Point64.equals(prev_v.pt, v0!.pt)) prev_v = prev_v.prev;
             prev_v.next = v0;
             v0!.prev = prev_v;
             if (!isOpen && prev_v.next === prev_v) continue;
@@ -725,6 +727,7 @@ export class ClipperBase {
                     default: return ae.windCount2 === 0;
                 }
             case ClipType.Difference:
+                // eslint-disable-next-line no-case-declarations
                 const result = this._fillrule === FillRule.Positive ? (ae.windCount2 <= 0) :
                     this._fillrule === FillRule.Negative ? (ae.windCount2 >= 0) :
                         (ae.windCount2 === 0);
@@ -1290,7 +1293,7 @@ export class ClipperBase {
                 ae1.outrec = undefined;
 
                 // horizontal edges can pass under open paths at a LocMins
-            } else if (pt === ae1.localMin.vertex.pt && !ClipperBase.isOpenEnd(ae1.localMin.vertex)) {
+            } else if (Point64.equals(pt, ae1.localMin.vertex.pt) && !ClipperBase.isOpenEnd(ae1.localMin.vertex)) {
                 // find the other side of the LocMin and
                 // if it's 'hot' join up with it ...
                 const ae3: Active | undefined = ClipperBase.findEdgeWithMatchingLocMin(ae1);
@@ -2362,7 +2365,7 @@ export class ClipperBase {
         for (; ;) {
             // NB if preserveCollinear == true, then only remove 180 deg. spikes
             if (InternalClipper.crossProduct(op2!.prev.pt, op2!.pt, op2!.next!.pt) === 0 &&
-                (op2!.pt === op2!.prev.pt || op2!.pt === op2!.next!.pt || !this.preserveCollinear ||
+                (Point64.equals(op2!.pt, op2!.prev.pt) || Point64.equals(op2!.pt, op2!.next!.pt) || !this.preserveCollinear ||
                     InternalClipper.dotProduct(op2!.prev.pt, op2!.pt, op2!.next!.pt) < 0)) {
 
                 if (op2 === outrec.pts) {
@@ -2406,7 +2409,7 @@ export class ClipperBase {
 
         // de-link splitOp and splitOp.next from the path
         // while inserting the intersection point
-        if (ip === prevOp.pt || ip === nextNextOp.pt) {
+        if (Point64.equals(ip, prevOp.pt) || Point64.equals(ip, nextNextOp.pt)) {
             nextNextOp.prev = prevOp;
             prevOp.next = nextNextOp;
         } else {
@@ -2483,7 +2486,7 @@ export class ClipperBase {
         path.push(lastPt);
 
         while (op2 !== op) {
-            if (op2.pt !== lastPt) {
+            if (Point64.notEquals(op2.pt, lastPt)) {
                 lastPt = op2.pt;
                 path.push(lastPt);
             }
@@ -2525,7 +2528,7 @@ export class ClipperBase {
     }
 
     private static getBoundsPath(path: Path64): Rect64 {
-        if (path.length === 0) return new Rect64();
+        if (path.length === 0) return new Rect64(true);
         const result = Clipper.InvalidRect64;
         for (const pt of path) {
             if (pt.x < result.left) result.left = pt.x;
@@ -2724,7 +2727,9 @@ export abstract class PolyPathBase {
         this.children.length = 0
     }
 
-    forEach = this.children.forEach
+    forEach(callback: (value: PolyPathBase, index: number) => void): void {
+        this.children.forEach(callback);
+    }
 
     private toStringInternal(idx: number, level: number): string {
         let result = "", padding = "", plural = "s";

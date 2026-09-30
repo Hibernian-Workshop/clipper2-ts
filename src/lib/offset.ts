@@ -212,7 +212,7 @@ export class ClipperOffset {
     }
 
     private static getBoundsAndLowestPolyIdx(paths: Paths64): { index: number, rec: Rect64 } {
-        const rec = new Rect64(false); // ie invalid rect
+        const rec = Clipper.InvalidRect64;
         let lpX: number = Number.MIN_SAFE_INTEGER;
         let index = -1;
         for (let i = 0; i < paths.length; i++) {

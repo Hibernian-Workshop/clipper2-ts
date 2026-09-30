@@ -134,8 +134,10 @@ export function midPointRound(value: number, mode: MidpointRounding = MidpointRo
     if (mode === MidpointRounding.AwayFromZero) {
         rounded = (value > 0) ? Math.floor(value + 0.5) : Math.ceil(value - 0.5);
     } else {
-        // For MidpointRounding.ToEven, use the default JavaScript rounding
         rounded = Math.round(value);
+        if (Math.abs(value % 1) === 0.5) {
+            rounded = 2 * Math.round(value / 2);
+        }
     }
 
     return rounded / factor;
@@ -162,11 +164,11 @@ export class Point64 implements IPoint64 {
         }
     }
 
-    public static equals(lhs: Point64, rhs: Point64): boolean {
+    public static equals(lhs: IPoint64, rhs: IPoint64): boolean {
         return lhs.x === rhs.x && lhs.y === rhs.y;
     }
 
-    public static notEquals(lhs: Point64, rhs: Point64): boolean {
+    public static notEquals(lhs: IPoint64, rhs: IPoint64): boolean {
         return lhs.x !== rhs.x || lhs.y !== rhs.y;
     }
 

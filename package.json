@@ -11,7 +11,7 @@
     "files": ["dist"],
     "sideEffects": false,
     "scripts": {
-        "build": "tsup src/public-api.ts --format esm,cjs --dts --clean",
+        "build": "tsup src/public-api.ts --format esm,cjs --dts --clean --target es2015",
         "test": "jest",
         "prepublishOnly": "npm run build"
     },
